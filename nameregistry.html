@@ -1,0 +1,175 @@
+<html>
+
+<head>
+  <script src='web3.min.js'></script>
+  <script type="text/javascript" src="abilist.js">  </script>
+  <script type="text/javascript">
+    var accounts;
+    var contractInstance = null;
+    var resultbox;
+
+    window.addEventListener('load', nameregistry);
+
+    async function nameregistry() {
+      if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        var address = "0x322b3b22bCAB6701BCfEFd5986a76eC204A0B7bb";
+        contractInstance = await new window.web3.eth.Contract(nameregistryabi, address);
+
+        // Legacy dapp browsers...
+      } else if (window.web3) {
+        window.web3 = new Web3(web3.currentProvider);
+        // Acccounts always exposed
+        //    web3.eth.sendTransaction({/* ... */});
+      }
+      // Non-dapp browsers...
+      else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        window.web3 = null
+      }
+      addEvtHandlers();
+    }
+
+    function addEvtHandlers() {
+
+      let btn = document.getElementById("changeOwner");
+      btn.addEventListener('click', setattribute);
+      btn = document.getElementById("setAddr");
+      btn.addEventListener('click', setAddr);
+      btn = document.getElementById("setDescription");
+      btn.addEventListener('click', setattribute);
+
+      btn = document.getElementById("register");
+      btn.addEventListener('click', setoneval);
+      btn = document.getElementById("unregister");
+      btn.addEventListener('click', setoneval);
+
+      btn = document.getElementById("contracts");
+      btn.addEventListener('click', oneargfunc);
+      btn = document.getElementById("getAddr");
+      btn.addEventListener('click', oneargfunc);
+      btn = document.getElementById("getDescription");
+      btn.addEventListener('click', oneargfunc);
+      btn = document.getElementById("getOwner");
+      btn.addEventListener('click', oneargfunc);
+
+      btn = document.getElementById("numContracts");
+      btn.addEventListener('click', showvalues);
+
+      resultbox = document.getElementById("resultbox");
+    }
+
+
+    async function setattribute() {
+      if (contractInstance != null) {
+        try {
+          let conname = document.getElementById("conname");
+          let name = conname.value;
+          let conattr = document.getElementById("conattr");
+          let attr = conattr.value;
+          const value = await contractInstance.methods[this.id](name, attr).send({ from: accounts[0] });
+          resultbox.innerHTML = value;
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+    async function setAddr() {
+      if (contractInstance != null) {
+        try {
+          let conname = document.getElementById("conname");
+          let name = conname.value;
+          let conattr = document.getElementById("conattr");
+          let address = web3.utils.toChecksumAddress(conattr.value);
+          const value = await contractInstance.methods.setAddr(name, address).send({ from: accounts[0] });
+          resultbox.innerHTML = value;
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+    async function setoneval() {
+      if (contractInstance != null) {
+        try {
+          let conname = document.getElementById("conname");
+          let name = conname.value;
+          let value = await contractInstance.methods[this.id](name).send({ from: accounts[0] });
+          if (value)
+            resultbox.innerHTML = value;
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+
+    async function oneargfunc() {
+      if (contractInstance != null) {
+        try {
+          let conname = document.getElementById("conname");
+          let name = conname.value;
+          const value = await contractInstance.methods[this.id](name).call();
+          // const value = await contractInstance.methods.getAddr(name).call(); 이거랑 바로 윗줄이랑 같은내용인데 편하게 하려구 위에꺼 쓰는거래
+          resultbox.innerHTML = value;
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+    async function showvalues() {
+      if (contractInstance != null) {
+        try {
+          const value = await contractInstance.methods[this.id]().call();
+          resultbox.innerHTML = value;
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+
+  </script>
+</head>
+
+<body>
+  <h1> Name Registry Test </h1>
+  <br />
+  Contract Name: <input type="text" id="conname" value="">
+  Attribute: <input type="text" id="conattr" value="" size=100>
+  <br />
+  Result: <span id="resultbox"> </span>
+  <br />
+  <br />
+  <input type="button" id="changeOwner" value="changeOwner()" style="width:200px">
+  <br /> <br />
+  <input type="button" id="register" value="register()" style="width:200px">
+  <br /> <br />
+  <input type="button" id="setAddr" value="setAddr()" style="width:200px">
+  <br /> <br />
+  <input type="button" id="setDescription" value="setDescription()" style="width:200px">
+  <br /> <br />
+  <input type="button" id="unregister" value="unregister()" style="width:200px">
+  <br /> <br />
+  <input type="button" id="contracts" value="contracts" style="width:200px">
+  <br /> <br />
+  <input type="button" id="getAddr" value="getAddr" style="width:200px">
+  <br /> <br />
+  <input type="button" id="getDescription" value="getDescription" style="width:200px">
+  <br /> <br />
+  <input type="button" id="getOwner" value="getOwner" style="width:200px">
+  <br /> <br />
+  <input type="button" id="numContracts" value="numContracts" style="width:200px">
+
+
+</body>
+
+</html>
