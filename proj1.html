@@ -1,0 +1,182 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src='web3.min.js'></script>
+  <script type="text/javascript" src="abilist.js">  </script>
+  <script type="text/javascript">
+    var accounts = null;
+    var cfcontractInstance = null;
+    var resultbox = null;
+
+    window.addEventListener('load', market);
+
+    async function market() {
+      if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        contractInstance = await new window.web3.eth.Contract(nameregistryabi, address);
+        var address = "0xe966085E202A46C564e239fc1c7796F29EEbB052";
+        getMarketInstance();
+
+        // Legacy dapp browsers...
+      } else if (window.web3) {
+        window.web3 = new Web3(web3.currentProvider);
+        // Acccounts always exposed
+        //    web3.eth.sendTransaction({/* ... */});
+      }
+      // Non-dapp browsers...
+      else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        window.web3 = null
+      }
+    }
+
+    async function getMarketInstance() {
+      var address = "0x38DD61d2D5C6eBBcFfD77FE0C1f3171533873B45";	// address of nameregistry
+      window.web3 = new Web3(window.ethereum);
+      var namereg = await new window.web3.eth.Contract(nameregistryabi, address);
+      try {
+        address = await namereg.methods.getAddr("market").call();
+        if (address != "") {
+          cfcontractInstance = await new window.web3.eth.Contract(cfabi, address);
+          registerEventHandlers();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+
+    function registerEventHandlers() {
+      let btn = document.getElementById("sale");
+      btn.addEventListener('click', sale);
+      btn = document.getElementById("consumers");
+      btn.addEventListener('click', consumers);
+
+      btn = document.getElementById("kill");
+      btn.addEventListener('click', killfunc);
+
+      btn = document.getElementById("deadline");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("ended");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("goalConsumers");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("numConsumers");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("status");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("totalConsumers");
+      btn.addEventListener('click', showvalues);
+      btn = document.getElementById("owner");
+      btn.addEventListener('click', showvalues);
+
+      resultbox = document.getElementById("resultbox");
+    }
+
+    async function killfunc() {
+      if (cfcontractInstance != null) {
+        try {
+          let value = await cfcontractInstance.methods.kill().send({ from: accounts[0] });
+          resultbox.innerHTML = value;
+
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+
+    async function sale() {
+      if (cfcontractInstance != null) {
+        try {
+          let valtxt = document.getElementById("saleamt");
+          let val = valtxt.value;
+          let value = await cfcontractInstance.methods.sale().send({ from: accounts[0], value: val });
+          resultbox.innerHTML = value;
+
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+
+    async function consumers() {
+      if (cfcontractInstance != null) {
+        try {
+          let valtxt = document.getElementById("consumerid");
+          let id = valtxt.value;
+          let value = await cfcontractInstance.methods.consumers(id).call();
+          resultbox.innerHTML = JSON.stringify(value);
+
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+    async function showvalues() {
+      if (cfcontractInstance != null) {
+        try {
+          var deadline = this.id
+
+          let value = await cfcontractInstance.methods[this.id]().call();
+          if (deadline == "deadline") {
+            var date = new Date(parseInt(value) * 1000);
+            value = value + ": " + date.toString();
+          }
+          resultbox.innerHTML = value;
+
+        } catch (error) {
+          resultbox.innerHTML = "error occured";
+          console.log(error);
+        }
+      }
+    }
+
+
+  </script>
+</head>
+
+<body>
+  <br />
+  <h1><span
+      style=" border-radius: 15px 15px 0 0; border-bottom: 2px solid #B2E0F7; padding: 0.5em; background: #D8EFFB;">Online
+      Market</span>
+  </h1>
+  <h4 style="border-bottom: 1px solid #688FF4; padding: 0.1em;"><b>Kim myeong hwan (20181582), Park minhee
+      (20203066)</b></h4>
+
+  <a href="https://www.youtube.com/watch?v=JcDnQEXNRmQ" target="_blank"> Project 1 Demo Video </a>
+  <br />
+  <br />
+  <input type="button" id="sale" value="구매"> Amount: <input type="text" id="saleamt" value=""> Wei
+  <br />
+  <input type="button" id="kill" value="판매 삭제">
+  <br />
+  <input type="button" id="deadline" value="판매 마감일">
+  <br />
+  <input type="button" id="ended" value="판매 종료 여부">
+  <br />
+  <input type="button" id="consumers" value="고객 목록"> index: <input type="text" id="consumerid" value="">
+  <br />
+  <input type="button" id="goalConsumers" value="판매 가능 수량">
+  <br />
+  <input type="button" id="numConsumers" value="현재 판매 수량">
+  <br />
+  <input type="button" id="status" value="판매현황">
+  <br />
+  <input type="button" id="totalConsumers" value="총 판매수량">
+  <br />
+  <input type="button" id="owner" value="판매자">
+  <br />
+  Result: <span id="resultbox"> </span>
+
+
+</body>
+
+</html>
